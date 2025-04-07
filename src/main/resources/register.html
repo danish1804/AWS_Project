@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register</title>
+</head>
+<body>
+<h2>Register Page</h2>
+<form id="registerForm">
+  <label for="email">Email:</label>
+  <input type="email" id="email" required><br>
+
+  <label for="username">Username:</label>
+  <input type="text" id="username" required><br>
+
+  <label for="password">Password:</label>
+  <input type="password" id="password" required><br>
+
+  <button type="submit">Register</button>
+</form>
+
+<script>
+  let registerEndpoint = "";
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const configResponse = await fetch("config.json");
+      const config = await configResponse.json();
+      registerEndpoint = config.registerEndpoint;
+      console.log("✅ Loaded register endpoint from config:", registerEndpoint);
+    } catch (error) {
+      console.error("❌ Failed to load config.json", error);
+      alert("Failed to load configuration. Please try again later.");
+    }
+  });
+
+  document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const user_name = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    console.log("Submitting payload:", JSON.stringify({ email, user_name, password }));
+
+    try {
+      const response = await fetch(registerEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, user_name, password })
+      });
+
+      const raw = await response.json();
+      console.log("Raw Lambda Response:", raw);
+
+      let result = raw;
+
+      // ✅ Handle different styles of API Gateway responses
+      if (typeof raw.body === "string") {
+        result = JSON.parse(raw.body);
+      } else if (typeof raw.body === "object") {
+        result = raw.body;
+      }
+
+      // ❌ In case something went wrong with body structure
+      if (!result || !result.status) {
+        throw new Error("Invalid or missing response body");
+      }
+
+      if (result.status === "fail") {
+        alert(result.message);
+      } else {
+        alert(result.message || "Registered successfully");
+        window.location.href = "login.html";
+      }
+
+    } catch (err) {
+      console.error("❌ Registration error:", err);
+      alert("Something went wrong during registration.");
+    }
+  });
+</script>
+</body>
+</html>

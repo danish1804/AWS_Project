@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+</head>
+<body>
+<h2>Login Page</h2>
+<form id="loginForm">
+  <label for="email">Email:</label>
+  <input type="email" id="email" required><br>
+
+  <label for="password">Password:</label>
+  <input type="password" id="password" required><br>
+
+  <button type="submit">Login</button>
+</form>
+
+<p>Don't have an account? <a href="register.html">Register here</a></p>
+
+<script>
+  // Global variable for the login endpoint
+  let loginEndpoint = "";
+
+  // Load config.json on page load to fetch the endpoint dynamically
+  window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const configResponse = await fetch("config.json");
+      const config = await configResponse.json();
+      loginEndpoint = config.loginEndpoint;
+      console.log("✅ Loaded login endpoint from config:", loginEndpoint);
+    } catch (error) {
+      console.error("❌ Failed to load config.json", error);
+      alert("Failed to load configuration. Please try again later.");
+    }
+  });
+
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    console.log("Submitting payload:", JSON.stringify({ email, password }));
+
+    try {
+      const response = await fetch(loginEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const raw = await response.json();
+      console.log("Raw Lambda Response:", raw);
+
+      // Parse based on format
+      let result = raw;
+      if (typeof raw.body === "string") {
+        result = JSON.parse(raw.body);
+      }
+
+      if (result.status === "success") {
+        // ✅ Store session values
+        localStorage.setItem("email", email);
+        localStorage.setItem("user_name", result.user_name);
+        console.log("✅ Login success. Redirecting...");
+
+        // ✅ Redirect
+        window.location.href = "main.html";
+      } else {
+        alert(result.message || "Invalid credentials");
+      }
+
+    } catch (err) {
+      console.error("❌ Error during login:", err);
+      alert("Something went wrong during login.");
+    }
+  });
+
+  // 👇👇👇 OLD method (Hardcoded API) - KEPT FOR REFERENCE ONLY
+  /*
+  const response = await fetch("http://localhost:4566/restapis/<api_id>/dev/_user_request_/login", {
+    ...
+  });
+  */
+</script>
+</body>
+</html>
