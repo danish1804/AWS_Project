@@ -1,0 +1,9 @@
+{
+  "loginEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/login",
+  "registerEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/register",
+  "getSubscriptionsEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/getSubscriptions",
+  "unsubscribeEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/unsubscribe",
+  "subscribeEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/subscribe",
+  "searchMusicEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/searchMusic"
+
+}

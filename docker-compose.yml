@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  devbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: devbox
+    volumes:
+      - .:/app                      # Mount your entire project
+      - ./target:/lambda-code      # Mount JAR folder directly (for LocalStack access)
+    depends_on:
+      - localstack
+    stdin_open: true
+    tty: true
+
+
+  localstack:
+      image: localstack/localstack
+      ports:
+        - "4566:4566"
+        - "4571:4571"
+      environment:
+        - SERVICES=lambda,s3,dynamodb,apigateway
+        - DEBUG=1
+        - DOCKER_HOST=unix:///var/run/docker.sock
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
+#        - "./.localstack:/tmp/localstack"  # Optional but good for persistence
+
