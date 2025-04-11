@@ -1,4 +1,4 @@
-package com.amazonaws.project;
+package com.amazonaws.project.admin;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class CreateAndSeedLoginTable {
 

@@ -1,43 +1,22 @@
-package com.amazonaws.project;
+package com.amazonaws.project.service;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
-import java.net.URI;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SearchMusicLambda implements RequestHandler<Map<String, Object>, Map<String, Object>> {
-
-    private final DynamoDbClient ddb = DynamoDbClient.builder()
-            .endpointOverride(URI.create("http://host.docker.internal:4566"))
-            .region(Region.US_EAST_1)
-            .build();
+public class MusicService {
 
     private static final String MUSIC_TABLE = "music";
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private Map<String, String> corsHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Access-Control-Allow-Origin", "*");
-        headers.put("Access-Control-Allow-Methods", "OPTIONS,POST");
-        headers.put("Access-Control-Allow-Headers", "*");
-        headers.put("Content-Type", "application/json");
-        return headers;
-    }
-
-    @Override
-    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
+    public static Map<String, Object> searchMusic(Map<String, String> body, DynamoDbClient ddb) {
         Map<String, Object> response = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper();
 
         try {
-            System.out.println("🎯 SearchMusicLambda triggered");
-
-            String rawBody = (String) input.get("body");
-            Map<String, String> body = mapper.readValue(rawBody, Map.class);
+            System.out.println("🎯 [Music] searchMusic() called");
 
             // Optional filters
             String titleFilter = Optional.ofNullable(body.get("title")).orElse("").toLowerCase();
@@ -45,13 +24,12 @@ public class SearchMusicLambda implements RequestHandler<Map<String, Object>, Ma
             String albumFilter = Optional.ofNullable(body.get("album")).orElse("").toLowerCase();
             String yearFilter = Optional.ofNullable(body.get("year")).orElse("");
 
-            // Scan all items
+            // Full table scan
             ScanRequest scanRequest = ScanRequest.builder().tableName(MUSIC_TABLE).build();
             ScanResponse scanResponse = ddb.scan(scanRequest);
-
             List<Map<String, AttributeValue>> allItems = scanResponse.items();
 
-            // Filter results manually (since we can't do partial match with Scan+FilterExpression easily)
+            // Filter results manually
             List<Map<String, String>> matched = allItems.stream()
                     .filter(item -> item.get("title").s().toLowerCase().contains(titleFilter))
                     .filter(item -> item.get("artist").s().toLowerCase().contains(artistFilter))
@@ -65,17 +43,35 @@ public class SearchMusicLambda implements RequestHandler<Map<String, Object>, Ma
                     ))
                     .collect(Collectors.toList());
 
+            Map<String, Object> resultBody = new HashMap<>();
+            resultBody.put("status", "success");
+            resultBody.put("results", matched);
+
             response.put("statusCode", 200);
-            response.put("headers", corsHeaders());
-            response.put("body", mapper.writeValueAsString(Map.of("status", "success", "results", matched)));
+            response.put("headers", getCorsHeaders());
+            response.put("body", mapper.writeValueAsString(resultBody));
+            return response;
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.put("statusCode", 500);
-            response.put("headers", corsHeaders());
-            response.put("body", String.format("{\"status\":\"error\",\"message\":\"%s\"}", e.getMessage()));
+            return buildResponse(500, "error", e.getMessage());
         }
+    }
 
+    private static Map<String, Object> buildResponse(int statusCode, String status, String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("statusCode", statusCode);
+        response.put("headers", getCorsHeaders());
+        response.put("body", "{\"status\":\"" + status + "\",\"message\":\"" + message.replace("\"", "'") + "\"}");
         return response;
+    }
+
+    private static Map<String, String> getCorsHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Access-Control-Allow-Origin", "*");
+        headers.put("Access-Control-Allow-Methods", "OPTIONS,POST");
+        headers.put("Access-Control-Allow-Headers", "*");
+        headers.put("Content-Type", "application/json");
+        return headers;
     }
 }
