@@ -216,12 +216,14 @@
         isSubscribing = false;
         return;
       }
-    // ✅ PREVENTION CHECK HERE
-  if (subscribedSet.has(`${title}#${album}`)) {
-    alert("⚠️ You're already subscribed to this song!");
-    isSubscribing = false;
-    return;
-  }
+      console.log("📡 User logged in:", { email, title, album });
+
+        // ✅ PREVENTION CHECK HERE
+        if (subscribedSet.has(`${title}#${album}`)) {
+        alert("⚠️ You're already subscribed to this song!");
+        isSubscribing = false;
+        return;
+        }
       try {
         const response = await fetch(subscribeEndpoint, {
           method: "POST",
@@ -248,7 +250,9 @@ try {
         if (data && data.status === "success") {
 
           subscribedSet.add(`${title}#${album}`);
+
           alert("✅ Subscribed successfully!");
+          console.log("Song subscribed successfully")
           await fetchSubscriptions(email);
           await document.getElementById("searchForm").dispatchEvent(new Event("submit"));
         } else {

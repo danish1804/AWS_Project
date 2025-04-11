@@ -1,9 +1,10 @@
-package com.amazonaws.project;
+package com.amazonaws.project.admin;
 
 // Import required AWS SDK classes
+
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
-import software.amazon.awssdk.regions.Region;
 
 import java.net.URI;
 

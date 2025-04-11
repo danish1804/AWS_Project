@@ -1,11 +1,11 @@
-package com.amazonaws.project;
+package com.amazonaws.project.admin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.regions.Region;
 
 import java.io.File;
 import java.io.IOException;
