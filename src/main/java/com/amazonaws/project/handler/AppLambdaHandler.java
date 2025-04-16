@@ -43,6 +43,7 @@ public class AppLambdaHandler implements RequestHandler<Map<String, Object>, Map
 
             // Parse the body
             String rawBody = (String) input.get("body");
+            System.out.println("📨 Raw Body: " + rawBody);
             Map<String, String> body = mapper.readValue(rawBody, Map.class);
 
             // Router logic
@@ -50,13 +51,13 @@ public class AppLambdaHandler implements RequestHandler<Map<String, Object>, Map
                 return LoginService.doLogin(body, ddb);
             } else if ("/register".equals(path) && "POST".equalsIgnoreCase(method)) {
                 return RegisterService.doRegister(body, ddb);
-            } else if ("/subscriptions".equals(path) && "POST".equalsIgnoreCase(method)) {
+            } else if ("/getSubscriptions".equals(path) && "POST".equalsIgnoreCase(method)) {
                 return SubscriptionService.getSubscriptions(body, ddb);
             } else if ("/subscribe".equals(path) && "POST".equalsIgnoreCase(method)) {
                 return SubscriptionService.subscribeSong(body, ddb);
             } else if ("/unsubscribe".equals(path) && "POST".equalsIgnoreCase(method)) {
                 return SubscriptionService.unsubscribeSong(body, ddb);
-            } else if ("/search".equals(path) && "POST".equalsIgnoreCase(method)) {
+            } else if ("/searchMusic".equals(path) && "POST".equalsIgnoreCase(method)) {
                 return MusicService.searchMusic(body, ddb);
             }
 
@@ -76,6 +77,24 @@ public class AppLambdaHandler implements RequestHandler<Map<String, Object>, Map
             response.put("body", "{\"status\":\"error\", \"message\":\"" + e.getMessage().replace("\"", "'") + "\"}");
             return response;
         }
+    }
+
+    private Map<String, Object> wrapResponse(Map<String, Object> result) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("statusCode", 200);
+        response.put("headers", withJsonContentType(getCorsHeaders()));
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonBody = mapper.writeValueAsString(result);
+            response.put("body", jsonBody);
+        } catch (Exception e) {
+            response.put("body", "{\"status\":\"error\", \"message\":\"Failed to serialize body\"}");
+        }
+        return response;
+    }
+    private Map<String, String> withJsonContentType(Map<String, String> headers) {
+        headers.put("Content-Type", "application/json");
+        return headers;
     }
 
     private Map<String, Object> buildCorsResponse() {

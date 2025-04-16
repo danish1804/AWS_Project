@@ -11,7 +11,7 @@ RUNTIME=java17
 ROLE_ARN=arn:aws:iam::000000000000:role/lambda-role
 API_NAME=music-api
 STAGE_NAME=dev
-ENDPOINTS=("login" "register" "subscribe" "unsubscribe" "subscriptions" "search")
+ENDPOINTS=("login" "register" "subscribe" "unsubscribe" "getSubscriptions" "searchMusic")
 REGION=us-east-1
 
 # -------------------- Step 1: Build JAR --------------------
@@ -30,6 +30,9 @@ $AWLOCAL lambda create-function \
 $AWLOCAL lambda update-function-code \
   --function-name $FUNCTION_NAME \
   --zip-file fileb://$JAR_PATH
+
+$AWLOCAL lambda get-function-configuration --function-name $FUNCTION_NAME
+
 
 # -------------------- Step 3: Setup API Gateway --------------------
 echo "🌐 Setting up API Gateway..."
@@ -111,7 +114,7 @@ for PATH in "${ENDPOINTS[@]}"; do
      --status-code 200 \
      --response-parameters '{
        "method.response.header.Access-Control-Allow-Headers":"'\''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'\''",
-       "method.response.header.Access-Control-Allow-Methods":"'\''POST,OPTIONS'\''",
+       "method.response.header.Access-Control-Allow-Methods":"'\''GET,POST,OPTIONS'\''",
        "method.response.header.Access-Control-Allow-Origin":"'\''*'\''"
      }'
 done
@@ -133,11 +136,9 @@ done
 
 
 # -------------------- CONFIG --------------------
-REGION=us-east-1
-STAGE_NAME=dev
-API_NAME=music-api
+
 OUTPUT_FILE=config.json
-ENDPOINTS=("login" "register" "subscribe" "unsubscribe" "subscriptions" "search")
+
 
 ## -------------------- Step 1: Get API ID from LocalStack --------------------
 #API_ID=$($AWLOCAL apigateway get-rest-apis \

@@ -28,28 +28,57 @@ public class MusicService {
             ScanRequest scanRequest = ScanRequest.builder().tableName(MUSIC_TABLE).build();
             ScanResponse scanResponse = ddb.scan(scanRequest);
             List<Map<String, AttributeValue>> allItems = scanResponse.items();
+            System.out.println("🔍 Total songs in music table: " + allItems.size());
+            allItems.forEach(item -> {
+                System.out.println("🎵 Raw song: " + item.get("title").s() + ", fields: " + item.keySet());
+            });
 
-            // Filter results manually
+
+            // Filter and include image_url
             List<Map<String, String>> matched = allItems.stream()
                     .filter(item -> item.get("title").s().toLowerCase().contains(titleFilter))
                     .filter(item -> item.get("artist").s().toLowerCase().contains(artistFilter))
                     .filter(item -> item.get("album").s().toLowerCase().contains(albumFilter))
                     .filter(item -> yearFilter.isEmpty() || item.get("year").n().equals(yearFilter))
-                    .map(item -> Map.of(
-                            "title", item.get("title").s(),
-                            "artist", item.get("artist").s(),
-                            "album", item.get("album").s(),
-                            "year", item.get("year").n()
-                    ))
+                    .map(item -> {
+                        Map<String, String> song = new HashMap<>();
+                        song.put("title", item.get("title").s());
+                        song.put("artist", item.get("artist").s());
+                        song.put("album", item.get("album").s());
+                        song.put("year", item.get("year").n());
+
+                        // ⬇️ Debug log here
+                        System.out.println("🎯 Mapping song: " + item.get("title").s());
+                        if (item.containsKey("image_s3_url")) {
+                            song.put("image_s3_url", item.get("image_s3_url").s());
+                            System.out.println("🖼 Found image URL: " + item.get("image_s3_url").s());
+                        } else {
+                            System.out.println("❌ image_s3_url not found for: " + item.get("title").s());
+                        }
+
+                        return song;
+                    })
                     .collect(Collectors.toList());
 
             Map<String, Object> resultBody = new HashMap<>();
             resultBody.put("status", "success");
             resultBody.put("results", matched);
+            matched.forEach(song -> {
+                System.out.println("🖼 Song: " + song.get("title") + ", image_s3_url: " + song.get("image_s3_url"));
+            });
+
 
             response.put("statusCode", 200);
             response.put("headers", getCorsHeaders());
             response.put("body", mapper.writeValueAsString(resultBody));
+            System.out.println("Matched songs:");
+            matched.forEach(song -> System.out.println(song));
+            System.out.println("Final response JSON:");
+            System.out.println(mapper.writeValueAsString(resultBody));
+
+
+            System.out.println("Returning search results: " + mapper.writeValueAsString(matched));
+
             return response;
 
         } catch (Exception e) {
