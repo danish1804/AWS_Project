@@ -40,7 +40,7 @@ public class LoginService {
             String storedPassword = getResponse.item().get("password").s();
 
             if (!password.equals(storedPassword)) {
-                return buildResponse(403, "fail", "Incorrect password");
+                return buildResponse(403, "fail", "Incorrect password or Username");
             }
 
             String userName = getResponse.item().get("user_name").s();

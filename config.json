@@ -1,8 +1,8 @@
 {
-  "loginEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/login",
-  "registerEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/register",
-  "subscribeEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/subscribe",
-  "unsubscribeEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/unsubscribe",
-  "subscriptionsEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/subscriptions",
-  "searchEndpoint": "http://localhost:4566/restapis/8dvuqgcwst/dev/_user_request_/search"
+  "loginEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/login",
+  "registerEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/register",
+  "subscribeEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/subscribe",
+  "unsubscribeEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/unsubscribe",
+  "getSubscriptionsEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/getSubscriptions",
+  "searchMusicEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/searchMusic"
 }

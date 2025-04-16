@@ -44,10 +44,33 @@ public class SubscriptionService {
             List<Map<String, Object>> subscriptions = new ArrayList<>();
             for (Map<String, AttributeValue> item : items) {
                 Map<String, Object> song = new HashMap<>();
-                song.put("title", item.getOrDefault("title", AttributeValue.fromS("")).s());
+                String title = item.getOrDefault("title", AttributeValue.fromS("")).s();
+                String album = item.getOrDefault("album", AttributeValue.fromS("")).s();
+                song.put("title", title);
                 song.put("artist", item.getOrDefault("artist", AttributeValue.fromS("")).s());
-                song.put("album", item.getOrDefault("album", AttributeValue.fromS("")).s());
+                song.put("album", album);
                 song.put("year", item.getOrDefault("year", AttributeValue.fromN("0")).n());
+
+                // ✅ Dynamically fetch image_url from the music table
+                try {
+                    GetItemRequest musicRequest = GetItemRequest.builder()
+                            .tableName("music")
+                            .key(Map.of(
+                                    "title", AttributeValue.fromS(title),
+                                    "album", AttributeValue.fromS(album)
+                            ))
+                            .build();
+
+                    GetItemResponse musicResp = ddb.getItem(musicRequest);
+
+                    if (musicResp.hasItem() && musicResp.item().containsKey("image_s3_url")) {
+                        String imageUrl = musicResp.item().get("image_s3_url").s();
+                        song.put("image_s3_url", imageUrl);
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Failed to fetch image_url for: " + title + " - " + album);
+                    e.printStackTrace();
+                }
                 subscriptions.add(song);
             }
 

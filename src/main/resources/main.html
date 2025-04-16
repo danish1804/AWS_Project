@@ -4,6 +4,21 @@
     <meta charset="UTF-8"/>
     <title>My Music Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        #subscribeMessage, #unsubscribeMessage {
+          font-weight: bold;
+          margin-top: 10px;
+        }
+
+        #subscribeMessage {
+          color: green;
+        }
+
+        #unsubscribeMessage {
+          color: red;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -25,9 +40,10 @@
 
 <hr>
 
-<!-- 🔶 Search & Subscribe Section -->
-<section>
+<!-- Correct Structure -->
+<section id="searchSection">
     <h3>Search Music</h3>
+
     <form id="searchForm">
         <label>Title: <input type="text" id="title"></label>
         <label>Artist: <input type="text" id="artist"></label>
@@ -35,10 +51,12 @@
         <label>Year: <input type="number" id="year"></label>
         <button type="submit">Search</button>
     </form>
+
     <div id="searchResultsContainer">
-        <!-- Search results will appear here -->
+        <!-- Results will be appended here -->
     </div>
 </section>
+
 
 <script>
     let getSubscriptionsEndpoint = "";
@@ -75,6 +93,70 @@
         console.error("❌ Error loading dashboard:", err);
         alert("Error loading dashboard. Please try again.");
       }
+
+      document.getElementById("searchForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = localStorage.getItem("email");
+  const title = document.getElementById("title").value.trim();
+  const artist = document.getElementById("artist").value.trim();
+  const album = document.getElementById("album").value.trim();
+  const year = document.getElementById("year").value.trim();
+
+  // Optional validation
+  if (!title && !artist && !album && !year) {
+    alert("Please enter at least one field to search.");
+    return;
+  }
+
+  // UI feedback
+  const resultsContainer = document.getElementById("searchResultsContainer");
+  resultsContainer.innerHTML = "<p>🔍 Searching songs...</p>";
+
+  try {
+    const res = await fetch(searchMusicEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, artist, album, year })
+    });
+
+    const raw = await res.json();
+    console.log("🔍 Raw Lambda Response:", raw);
+
+    let result;
+    try {
+      result = raw.body ?
+        (typeof raw.body === "string" ? JSON.parse(raw.body) : raw.body)
+        : raw;
+    } catch (e) {
+      console.error("❌ Failed to parse response body:", raw.body);
+      resultsContainer.innerHTML = "<p>❌ Failed to parse response.</p>";
+      return;
+    }
+
+    if (result.status === "success") {
+      const subscribedTitles = await fetchSubscriptions(email);
+      window.lastSearchResults = result.results;
+      renderSearchResults(result.results, subscribedTitles);
+      // ✅ Clear the form fields after rendering results
+       //document.getElementById("title").value = "";
+       //document.getElementById("artist").value = "";
+      // document.getElementById("album").value = "";
+      // document.getElementById("year").value = "";
+    } else {
+      resultsContainer.innerHTML = "<p>❌ " + (result.message || "Search failed.") + "</p>";
+    }
+
+  } catch (err) {
+    console.error("❌ Error during search:", err);
+    resultsContainer.innerHTML = "<p>❌ Network or server error during search.</p>";
+  }
+  setTimeout(() => {
+  document.getElementById("searchForm").reset();
+}, 100);
+ // ✅ clears all inputs
+
+});
     });
 
     async function fetchSubscriptions(email) {
@@ -106,60 +188,128 @@
     }
 
     function renderSubscribedMusic(subscriptions) {
-      const container = document.getElementById("subscribedMusicContainer");
-      container.innerHTML = "";
+  const container = document.getElementById("subscribedMusicContainer");
+  container.innerHTML = "";
 
-      if (!subscriptions || subscriptions.length === 0) {
-        container.innerHTML = "<p>You haven’t subscribed to any songs yet.</p>";
-        return;
-      }
+  if (!subscriptions || subscriptions.length === 0) {
+    container.innerHTML = "<p>You haven’t subscribed to any songs yet.</p>";
+    return;
+  }
 
-      subscriptions.forEach(song => {
-        const div = document.createElement("div");
-        div.style.border = "1px solid #ccc";
-        div.style.padding = "10px";
-        div.style.marginBottom = "10px";
+  subscriptions.forEach(song => {
+    const card = document.createElement("div");
+    card.style.border = "1px solid #ccc";
+    card.style.padding = "10px";
+    card.style.marginBottom = "10px";
+    card.style.borderRadius = "8px";
+    card.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+    card.style.transition = "opacity 0.3s ease-in-out";
 
-        div.innerHTML = `
-          <strong>${song.title}</strong> by ${song.artist}<br>
-          Album: ${song.album} (${song.year})<br>
-          <button onclick="unsubscribe('${song.title}', '${song.album}')">Unsubscribe</button>
-        `;
+    // 📄 Add song text details
+    const titleEl = document.createElement("strong");
+    titleEl.innerText = song.title;
 
-        container.appendChild(div);
-      });
+    const meta = document.createElement("div");
+    meta.innerHTML = `by ${song.artist}<br>Album: ${song.album} (${song.year})<br>`;
+    card.appendChild(titleEl);
+    card.appendChild(meta);
+
+    // 📷 Add song image if available
+    if (song.image_s3_url) {
+      const img = document.createElement("img");
+      img.src = song.image_s3_url;
+      img.alt = song.title;
+      img.loading = "lazy";
+      img.style.width = "150px";
+      img.style.marginTop = "10px";
+      img.style.borderRadius = "6px";
+      img.style.objectFit = "cover";
+      img.style.opacity = "0";
+      img.style.transition = "opacity 0.5s ease-in-out";
+
+      img.onload = () => {
+        img.style.opacity = "1";
+      };
+
+      img.onerror = () => {
+        img.src = "https://via.placeholder.com/150?text=No+Image";
+        img.style.opacity = "1";
+      };
+
+      card.appendChild(img);
     }
+
+    // 🔘 Add Unsubscribe button
+    const button = document.createElement("button");
+    button.innerText = "Unsubscribe";
+    button.addEventListener("click", () => {
+      unsubscribe(song.title, song.album);
+    });
+    button.style.marginTop = "10px";
+    card.appendChild(button);
+
+    container.appendChild(card);
+  });
+}
+
+
 
     async function unsubscribe(title, album) {
-      const email = localStorage.getItem("email");
-      const titleAlbum = `${title}#${album}`;
+  const email = localStorage.getItem("email");
+  const messageBox = document.getElementById("unsubscribeMessage"); // Add this in HTML
+  const titleAlbum = `${title}#${album}`;
 
-      if (!email || !title || !album) {
-        alert("Invalid unsubscribe request.");
-        return;
-      }
+  if (!email || !title || !album) {
+    showMessage("❌ Invalid unsubscribe request.", true);
+    return;
+  }
 
-      try {
-        const response = await fetch(unsubscribeEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, title, album })
-        });
+  try {
+    showMessage("⏳ Unsubscribing...", false);
 
-        const raw = await response.json();
-        let result = raw.body ? JSON.parse(raw.body) : raw;
+    const response = await fetch(unsubscribeEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, title, album })
+    });
 
-        if (result.status === "success") {
-          alert("Unsubscribed successfully!");
-          await fetchSubscriptions(email);
-        } else {
-          alert(result?.message || "❌ Failed to unsubscribe.");
-        }
-      } catch (err) {
-        console.error("❌ Error unsubscribing:", err);
-        alert("Something went wrong during unsubscription.");
-      }
+    const raw = await response.json();
+    const result = raw.body ? JSON.parse(raw.body) : raw;
+
+    if (result.status === "success") {
+  showMessage("✅ Unsubscribed successfully!", false);
+  subscribedSet.delete(titleAlbum); // 💡 remove from cache
+
+  // 🔄 Update search result DOM
+  const card = document.querySelector(`[data-key="${titleAlbum}"]`);
+  if (card) {
+    const label = card.querySelector(".subscribed-label");
+    const button = document.createElement("button");
+    button.innerText = "Subscribe";
+    button.addEventListener("click", () => subscribe(title, album));
+    label.replaceWith(button); // Swap label with subscribe button
+  }
+
+  // 🔄 Refresh subscribed music section
+  await fetchSubscriptions(email);
+} else {
+      showMessage(result.message || "❌ Failed to unsubscribe.", true);
     }
+
+  } catch (err) {
+    console.error("❌ Error during unsubscribe:", err);
+    showMessage("❌ Something went wrong during unsubscription.", true);
+  }
+
+  // UI message helper
+  function showMessage(msg, isError = true) {
+    if (!messageBox) return;
+    messageBox.innerText = msg;
+    messageBox.style.color = isError ? "red" : "green";
+    messageBox.style.fontWeight = "bold";
+  }
+}
+
 
     function renderSearchResults(songs, subscribedTitles) {
   const container = document.getElementById("searchResultsContainer");
@@ -170,146 +320,169 @@
     return;
   }
 
+  console.log("🎨 Rendering search results:", songs);
+
   songs.forEach(song => {
+    console.log(`🖼️ Song: ${song.title}, image_s3_url: ${song.image_s3_url}`);
     const key = `${song.title}#${song.album}`;
 
     const card = document.createElement("div");
     card.style.border = "1px solid #ccc";
     card.style.padding = "10px";
     card.style.marginBottom = "10px";
+    card.style.borderRadius = "8px";
+    card.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+    card.style.transition = "opacity 0.3s ease-in-out";
 
+    // ✨ Add song info
     card.innerHTML = `
       <strong>${song.title}</strong> by ${song.artist}<br>
       Album: ${song.album} (${song.year})<br>
     `;
 
-    if (subscribedTitles.includes(key)) {
-      const label = document.createElement("p");
-      label.style.color = "green";
-      label.innerText = "✅ Already Subscribed";
-      card.appendChild(label);
-    } else {
-      const button = document.createElement("button");
-      button.innerText = "Subscribe";
-      button.addEventListener("click", () => {
-        subscribe(song.title, song.album);
-      });
-      card.appendChild(button);
+    // ✨ Add image with lazy loading + fade-in + fallback
+    if (song.image_s3_url) {
+      const img = document.createElement("img");
+      img.src = song.image_s3_url;
+
+      img.alt = song.title;
+      img.loading = "lazy"; // ✅ Lazy loading
+      img.style.width = "150px";
+      img.style.marginTop = "10px";
+      img.style.borderRadius = "6px";
+      img.style.objectFit = "cover";
+      img.style.opacity = "0";
+      img.style.transition = "opacity 0.5s ease-in-out";
+
+      // ✅ Fade-in after loading
+      img.onload = () => {
+        img.style.opacity = "1";
+      };
+
+      // ⚠️ Fallback if image fails
+      img.onerror = () => {
+        img.src = "https://via.placeholder.com/150?text=No+Image";
+        img.style.opacity = "1";
+      };
+      console.log("🎯 Image URL for", song.title, ":", song.image_s3_url);
+
+
+      card.appendChild(img);
     }
+
+    card.setAttribute("data-key", key); // ✅ for selective updates
+
+if (subscribedTitles.includes(key)) {
+  const label = document.createElement("p");
+  label.classList.add("subscribed-label"); // ✅ For targeting
+  label.style.color = "green";
+  label.style.fontWeight = "bold";
+  label.innerText = "✅ Already Subscribed";
+  card.appendChild(label);
+} else {
+  const button = document.createElement("button");
+  button.innerText = "Subscribe";
+  button.addEventListener("click", () => {
+    subscribe(song.title, song.album);
+  });
+  card.appendChild(button);
+}
 
     container.appendChild(card);
   });
 }
 
 
+
+
     async function subscribe(title, album) {
-    console.log("subscribe() called", { title, album, stack: new Error().stack });
+  //console.log("subscribe() called", { title, album, stack: new Error().stack });
 
-      if (isSubscribing) return;
-      isSubscribing = true;
+  if (isSubscribing) return;
+  isSubscribing = true;
 
-      const email = localStorage.getItem("email");
-      console.log("📡 Subscribing:", { email, title, album });
+  const email = localStorage.getItem("email");
 
-      if (!email) {
-        alert("User not logged in");
-        isSubscribing = false;
-        return;
-      }
-      console.log("📡 User logged in:", { email, title, album });
+  const messageBox = document.getElementById("subscribeMessage"); // You need to add this element
 
-        // ✅ PREVENTION CHECK HERE
-        if (subscribedSet.has(`${title}#${album}`)) {
-        alert("⚠️ You're already subscribed to this song!");
-        isSubscribing = false;
-        return;
-        }
-      try {
-        const response = await fetch(subscribeEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, title, album })
-        });
-
-        const raw = await response.json();
-        console.log("🎯 Subscribe Lambda Raw Response:", raw);
-
-        let data;
-try {
-  if (raw && raw.body) {
-    data = typeof raw.body === "string" ? JSON.parse(raw.body) : raw.body;
-  } else {
-    console.warn("No body found in Lambda response:", raw);
-    data = raw;
+  if (!email) {
+    showMessage("❌ User not logged in", true);
+    isSubscribing = false;
+    return;
   }
-} catch (parseError) {
-  console.error("❌ Failed to parse response body:", parseError);
-  data = { status: "fail", message: "Invalid response from server." };
+
+  const titleAlbumKey = `${title}#${album}`;
+  if (subscribedSet.has(titleAlbumKey)) {
+    showMessage("⚠️ You're already subscribed to this song!", true);
+    isSubscribing = false;
+    return;
+  }
+
+  try {
+    showMessage("⏳ Subscribing to song...", false);
+
+    const response = await fetch(subscribeEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, title, album })
+    });
+
+    const raw = await response.json();
+    console.log("🎯 Subscribe Lambda Raw Response:", raw);
+
+    let data;
+    try {
+      data = raw?.body ? (typeof raw.body === "string" ? JSON.parse(raw.body) : raw.body) : raw;
+    } catch (err) {
+      console.error("❌ Failed to parse Lambda response:", err);
+      data = { status: "fail", message: "Invalid response from server." };
+    }
+
+    if (data.status === "success") {
+      showMessage("✅ Subscribed successfully!");
+      subscribedSet.add(titleAlbumKey);
+
+      await fetchSubscriptions(email);
+      // ✅ Fetch latest subscription list
+      const updatedSubscribedTitles = await fetchSubscriptions(email);
+
+      // ✅ Re-render using cached search results
+      if (window.lastSearchResults) {
+        renderSearchResults(window.lastSearchResults, updatedSubscribedTitles);
+      }
+    } else {
+      showMessage(data.message || "❌ Subscription failed.", true);
+    }
+
+  } catch (err) {
+    console.error("❌ Error subscribing:", err);
+    showMessage("❌ Something went wrong while subscribing.", true);
+  } finally {
+    isSubscribing = false;
+  }
+
+  // ✅ Inline message display helper
+  function showMessage(msg, isError = true) {
+    if (!messageBox) return;
+    messageBox.innerText = msg;
+    messageBox.style.color = isError ? "red" : "green";
+    messageBox.style.fontWeight = "bold";
+  }
 }
 
-        if (data && data.status === "success") {
-
-          subscribedSet.add(`${title}#${album}`);
-
-          alert("✅ Subscribed successfully!");
-          console.log("Song subscribed successfully")
-          await fetchSubscriptions(email);
-          await document.getElementById("searchForm").dispatchEvent(new Event("submit"));
-        } else {
-          alert(data.message || "❌ Subscription failed.");
-        }
-      } catch (err) {
-        console.error("❌ Error subscribing to song:", err);
-        alert("Error occurred during subscription.");
-      } finally {
-        isSubscribing = false;
-      }
-    }
 
     function logout() {
-      localStorage.clear();
-      window.location.href = "login.html";
-    }
+  const confirmLogout = confirm("Are you sure you want to logout?");
+  if (confirmLogout) {
+    localStorage.clear();
+  document.body.innerHTML = "<h2>👋 You’ve been logged out. Redirecting to login...</h2>";
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 1500); // Delay for 1.5 seconds
+  }
+}
 
-    document.getElementById("searchForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
 
-      const email = localStorage.getItem("email");
-      const title = document.getElementById("title").value.trim();
-      const artist = document.getElementById("artist").value.trim();
-      const album = document.getElementById("album").value.trim();
-      const year = document.getElementById("year").value.trim();
-
-      try {
-        const res = await fetch(searchMusicEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, artist, album, year })
-        });
-
-        const raw = await res.json();
-        console.log("🔍 Raw Lambda Response:", raw);
-
-        // Handle proxy vs direct format
-        let result;
-        try {
-        result = raw.body ? (typeof raw.body === "string" ? JSON.parse(raw.body) : raw.body) : raw;
-        } catch (e) {
-        console.error("❌ Failed to parse response body:", raw.body);
-        alert("Search failed due to invalid response.");
-        return;
-        }
-        if (result.status === "success") {
-          const subscribedTitles = await fetchSubscriptions(email);
-          renderSearchResults(result.results, subscribedTitles);
-        } else {
-          alert(result.message || "Search failed.");
-        }
-      } catch (err) {
-        console.error("❌ Error during search:", err);
-        alert("Search failed due to an error.");
-      }
-    });
 
 </script>
 

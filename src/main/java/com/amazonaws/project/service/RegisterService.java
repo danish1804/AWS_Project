@@ -25,6 +25,16 @@ public class RegisterService {
             if (email == null || password == null || userName == null) {
                 return buildResponse(400, "fail", "Missing required fields");
             }
+            // ✅ Email format validation
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                return buildResponse(400, "fail", "Invalid email format");
+            }
+
+            // ✅ Password strength validation
+            if (!password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$")) {
+                return buildResponse(400, "fail",
+                        "Password must be at least 8 characters long and include a number, lowercase, uppercase, and special character");
+            }
 
             // Check if user already exists
             GetItemRequest checkRequest = GetItemRequest.builder()
