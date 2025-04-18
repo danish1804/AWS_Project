@@ -19,7 +19,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const userName = localStorage.getItem("user_name");
 
         if (!email || !userName) {
-            alert("User not logged in. Redirecting...");
+            showToast("User not logged in. Redirecting...");
             window.location.href = "login.html";
             return;
         }
@@ -30,7 +30,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     } catch (err) {
         console.error("❌ Error loading dashboard:", err);
-        alert("Error loading dashboard. Please try again.");
+        showToast("Error loading dashboard. Please try again.");
     }
 
     document.getElementById("searchForm").addEventListener("submit", async (e) => {
@@ -44,7 +44,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         // Optional validation
         if (!title && !artist && !album && !year) {
-            alert("Please enter at least one field to search.");
+            showToast("Please enter at least one field to search.");
             return;
         }
 
@@ -116,12 +116,12 @@ async function fetchSubscriptions(email) {
             renderSubscribedMusic(result.subscriptions);
             return Array.from(subscribedSet); // 👈 For search comparison
         } else {
-            alert(result.message || "Failed to load subscriptions.");
+            showToast(result.message || "Failed to load subscriptions.");
             return [];
         }
     } catch (error) {
         console.error("❌ Failed to fetch subscriptions:", error);
-        alert("Error loading subscriptions.");
+        showToast("Error loading subscriptions.");
         return [];
     }
 }
@@ -249,6 +249,24 @@ async function unsubscribe(title, album) {
         messageBox.style.color = isError ? "red" : "green";
         messageBox.style.fontWeight = "bold";
     }
+}
+
+function showToast(message, isError = false) {
+    const toast = document.createElement("div");
+    toast.innerText = message;
+    toast.className = "toast";
+    toast.style.backgroundColor = isError ? "#e74c3c" : "#2ecc71"; // Red or Green
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("visible");
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.remove("visible");
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
 }
 
 
