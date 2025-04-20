@@ -4,26 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register</title>
+  <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
-<h2>Register Page</h2>
-<form id="registerForm">
-  <label for="email">Email:</label>
-  <input type="email" id="email" required><br>
 
-  <label for="username">Username:</label>
-  <input type="text" id="username" required><br>
 
-  <label for="password">Password:</label>
-  <input type="password" id="password" required>
-  <input type="checkbox" id="togglePassword">
-  <label for="togglePassword">Show Password</label><br>
+<div class="auth-container">
+  <h2>Register</h2>
 
-  <button type="submit">Register</button>
-</form>
+  <form id="registerForm" class="auth-form">
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
 
-<!-- ✅ Message container for errors or success -->
-<p id="message" style="color: red;"></p>
+    <label for="username">Username:</label>
+    <input type="text" id="username" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" required>
+
+    <label class="checkbox-label">
+      <input type="checkbox" id="togglePassword">
+      Show Password
+    </label>
+
+    <button type="submit">Register</button>
+    <p id="message" class="error-message"></p>
+  </form>
+
+  <p class="auth-footer">Already have an account? <a href="login.html">Login here</a></p>
+</div>
 
 <script src="register.js" defer></script>
 </body>
