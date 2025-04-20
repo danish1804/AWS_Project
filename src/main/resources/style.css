@@ -1,7 +1,7 @@
  body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 20px;
-      background-color: #f9f9f9;
+     background: linear-gradient(135deg, #e0f7fa, #f8f9fa);
       color: #333;
     }
 
@@ -142,13 +142,26 @@
 
 
  .auth-container {
-     max-width: 400px;
+     max-width: 420px;
      margin: 80px auto;
      padding: 30px;
      background-color: #ffffff;
-     border-radius: 10px;
-     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-     text-align: center;
+     border-radius: 12px;
+     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+     text-align: left;
+     animation: fadeInForm 0.8s ease-out;
+ }
+
+ /* ✨ Fade-in animation */
+ @keyframes fadeInForm {
+     0% {
+         opacity: 0;
+         transform: translateY(20px);
+     }
+     100% {
+         opacity: 1;
+         transform: translateY(0);
+     }
  }
 
  .auth-form {
@@ -157,12 +170,15 @@
      gap: 12px;
  }
 
+ /* 🖋 Input styling enhancements */
  .auth-form input {
-     padding: 10px;
+     padding: 12px;
      font-size: 15px;
      border: 1px solid #ccc;
      border-radius: 6px;
+     transition: border-color 0.3s, box-shadow 0.3s;
  }
+
 
  .auth-form button {
      padding: 10px;
@@ -172,11 +188,12 @@
      border: none;
      border-radius: 6px;
      cursor: pointer;
-     transition: background-color 0.3s ease;
+     transition: background-color 0.3s ease, transform 0.2s ease;
  }
 
  .auth-form button:hover {
      background-color: #2980b9;
+     transform: scale(1.05);
  }
 
  .checkbox-label {
@@ -184,6 +201,8 @@
      align-items: center;
      font-size: 14px;
      gap: 6px;
+     justify-content: flex-start;
+     margin-top: 8px;
  }
 
  .auth-footer {
@@ -197,3 +216,7 @@
      font-weight: bold;
      margin-top: 5px;
  }
+
+
+
+
