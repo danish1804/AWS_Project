@@ -1,8 +1,8 @@
 {
-  "loginEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/login",
-  "registerEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/register",
-  "subscribeEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/subscribe",
-  "unsubscribeEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/unsubscribe",
-  "getSubscriptionsEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/getSubscriptions",
-  "searchMusicEndpoint": "http://localhost:4566/restapis/iatkuacozk/dev/_user_request_/searchMusic"
+  "loginEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/login",
+  "registerEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/register",
+  "subscribeEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/subscribe",
+  "unsubscribeEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/unsubscribe",
+  "getSubscriptionsEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/getSubscriptions",
+  "searchMusicEndpoint": "https://cjw6zds5h6.execute-api.us-east-1.amazonaws.com/searchMusic"
 }

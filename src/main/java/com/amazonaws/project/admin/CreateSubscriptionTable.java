@@ -11,7 +11,6 @@ public class CreateSubscriptionTable {
     public static void main(String[] args) {
         // Connect to LocalStack DynamoDB
         DynamoDbClient ddb = DynamoDbClient.builder()
-                .endpointOverride(URI.create("http://localhost:4566"))
                 .region(Region.US_EAST_1)
                 .build();
 

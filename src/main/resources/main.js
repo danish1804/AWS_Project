@@ -53,10 +53,18 @@ window.addEventListener("DOMContentLoaded", async () => {
         resultsContainer.innerHTML = "<p>🔍 Searching songs...</p>";
 
         try {
-            const res = await fetch(searchMusicEndpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, artist, album, year })
+            const queryParams = new URLSearchParams({
+                title: title || "",
+                artist: artist || "",
+                album: album || "",
+                year: year || ""
+            }).toString();
+
+            const url = `${searchMusicEndpoint}?${queryParams}`;
+
+            const res = await fetch(url, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
             });
 
             const raw = await res.json();
@@ -100,10 +108,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function fetchSubscriptions(email) {
     try {
-        const response = await fetch(getSubscriptionsEndpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
+
+        const url = `${getSubscriptionsEndpoint}?email=${encodeURIComponent(email)}`;
+        const response = await fetch(url, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
         });
 
         const raw = await response.json();
@@ -172,9 +181,9 @@ function renderSubscribedMusic(subscriptions) {
                 img.style.opacity = "1";
             };
 
-            img.onerror = () => {
-                img.src = "https://via.placeholder.com/150?text=No+Image";
-                img.style.opacity = "1";
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = "no-image.jpg";
             };
 
             card.appendChild(img);
@@ -321,9 +330,9 @@ function renderSearchResults(songs, subscribedTitles) {
             };
 
             // ⚠️ Fallback if image fails
-            img.onerror = () => {
-                img.src = "https://via.placeholder.com/150?text=No+Image";
-                img.style.opacity = "1";
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = "no-image.jpg";
             };
             console.log("🎯 Image URL for", song.title, ":", song.image_s3_url);
 
