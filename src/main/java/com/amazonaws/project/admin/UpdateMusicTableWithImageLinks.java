@@ -26,11 +26,8 @@ public class UpdateMusicTableWithImageLinks {
                 new File(S3_MAPPING_FILE), new TypeReference<Map<String, String>>() {}
         );
 
-        DynamoDbClient ddb = DynamoDbClient.builder().
-                 endpointOverride(URI.create("http://localstack:4566"))
+        DynamoDbClient ddb = DynamoDbClient.builder()
                 .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                 .build();
         //
 

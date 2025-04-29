@@ -24,22 +24,13 @@ import java.util.UUID;
 
 public class UploadImagesToS3 {
 
-    private static final String BUCKET_NAME = "artist-images"; // Replace with your bucket name
+    private static final String BUCKET_NAME = "artist-images-danish"; // Replace with your bucket name
     private static final String JSON_FILE_PATH = "2025a1.json"; // Place the file in your project root or adjust path
     private static final Region REGION = Region.US_EAST_1;
     private static final String OUTPUT_MAPPING_FILE = "s3_image_links.json";// Or your S3 region
 
     private static final S3Client s3 = S3Client.builder()
-            .endpointOverride(URI.create("http://localstack:4566"))
             .region(Region.US_EAST_1)
-            .credentialsProvider(
-                    StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"))
-            )
-            .serviceConfiguration(
-                    S3Configuration.builder()
-                            .pathStyleAccessEnabled(true) // ✅ Force path-style URLs
-                            .build()
-            )
             .build();
 
 
@@ -83,8 +74,9 @@ public class UploadImagesToS3 {
 
                 s3.putObject(request, RequestBody.fromFile(tempFile));
 //                String s3Url = "https://" + BUCKET_NAME + ".s3." + REGION.id() + ".amazonaws.com/" + uniqueKey;
-                String s3Url = "http://localhost:4566/" + BUCKET_NAME + "/" + uniqueKey;
-                System.out.println("🖼️ Accessible locally at: " + s3Url);
+                String s3Url = "https://" + BUCKET_NAME + ".s3." + REGION.id() + ".amazonaws.com/" + uniqueKey;
+
+                System.out.println("🖼️ Accessible at: " + s3Url);
 
                 String songKey = title + "|||" + album + "|||" + index;
                 songToS3UrlMap.put(songKey, s3Url);

@@ -21,7 +21,6 @@ public class LoadMusicData {
         // ✅ Connect to local DynamoDB (you can change URI if running on AWS cloud)
         DynamoDbClient ddb = DynamoDbClient.builder()
                 .region(Region.US_EAST_1)
-                .endpointOverride(URI.create("http://localhost:4566"))
                 .build();
 
         ObjectMapper mapper = new ObjectMapper(); // ✅ For reading JSON file

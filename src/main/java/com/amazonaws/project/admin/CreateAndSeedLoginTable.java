@@ -15,7 +15,6 @@ public class CreateAndSeedLoginTable {
         // Step 1: Create a DynamoDbClient connected to the us-east-1 region
         // ✅ Create client for DynamoDB Local
         DynamoDbClient ddb = DynamoDbClient.builder()
-                .endpointOverride(URI.create("http://localhost:4566"))
                 .region(Region.US_EAST_1)
                 .build();
 
